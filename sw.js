@@ -1,5 +1,5 @@
-/* Peygamberimizin Hayatı 7 offline helper. Version 6eb2e8875b changes whenever any file changes, so devices pick up updates. */
-const V='p7-6eb2e8875b',FILES=["./", "icons/apple-touch-icon.png", "icons/favicon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "img/logo.png", "index.html", "js/01-core.js", "js/02-questions.js", "js/03-curriculum.js", "js/04-engine.js", "js/05-lessons.js", "js/06-app.js", "js/07-fen.js", "js/08-classlink.js", "js/units/u1.js", "js/units/u2.js", "js/units/u3.js", "js/units/u4.js", "manifest.webmanifest"];
+/* Peygamberimizin Hayatı 7 offline helper. Version a1c5fdee84 changes whenever any file changes, so devices pick up updates. */
+const V='p7-a1c5fdee84',FILES=["./", "icons/apple-touch-icon.png", "icons/favicon.png", "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "img/logo.png", "index.html", "js/01-core.js", "js/02-questions.js", "js/03-curriculum.js", "js/04-engine.js", "js/05-lessons.js", "js/06-app.js", "js/07-fen.js", "js/08-classlink.js", "js/units/u1.js", "js/units/u2.js", "js/units/u3.js", "js/units/u4.js", "manifest.webmanifest"];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k.startsWith('p7-')&&k!==V&&k!=='p7-fonts').map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',e=>{const r=e.request;if(r.method!=='GET')return;const u=new URL(r.url);
