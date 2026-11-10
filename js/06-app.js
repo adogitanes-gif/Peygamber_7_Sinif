@@ -108,10 +108,10 @@ function shopPage(){
   const item=(cat,id,name,price,preview)=>{const own=s.owned.includes(id),eq=s[cat]===id;
     return `<div class="item${eq?' eq':''}">${preview}<b>${name}</b>${eq?'<span class="hint">Kuşanıldı</span>':own?`<button class="btn" data-eq="${cat}:${id}" type="button">Kuşan</button>`:`<button class="btn gold" data-buy="${cat}:${id}:${price}" type="button" ${w<price?'disabled':''}><i class="coin"></i>${price}</button>`}</div>`};
   app.innerHTML=`<div class="page"><div class="row" style="justify-content:space-between"><a class="btn" href="#">← Harita</a><span class="coins" id="wallet"><i class="coin"></i>${w} altın</span></div>
-   <h1>Mağaza</h1><div class="pnl"><div class="pv">${heroBox(s)}<svg viewBox="-60 -40 120 80" style="width:150px;height:100px">${RAINBOW}${slipperSVG(SLIPS[s.slip][1])}</svg></div><p class="hint" style="text-align:center">Doğru cevaplarla kazandığın altınlarla robotunu ve annenin terliğini süsle.</p></div>
+   <h1>Mağaza</h1><div class="pnl"><div class="pv">${heroBox(s)}<svg viewBox="-60 -40 120 80" style="width:150px;height:100px">${SHOPDEFS}${slipperSVG(SLIPS[s.slip][1])}</svg></div><p class="hint" style="text-align:center">Doğru cevaplarla kazandığın altınlarla robotunu ve annenin terliğini süsle.</p></div>
    <div class="pnl"><h2>Robot rengi</h2><div class="shopgrid">${Object.entries(HEROC).map(([id,[n,,p]])=>item('hero',id,n,p,heroBox({...s,hero:id,hat:'h-none'}))).join('')}</div></div>
    <div class="pnl"><h2>Şapka</h2><div class="shopgrid">${Object.entries(HATS).map(([id,[n,p]])=>item('hat',id,n,p,heroBox({...s,hat:id}))).join('')}</div></div>
-   <div class="pnl"><h2>Annenin terliği</h2><div class="shopgrid">${Object.entries(SLIPS).map(([id,[n,f,p]])=>item('slip',id,n,p,`<svg viewBox="-45 -45 90 90">${RAINBOW}${slipperSVG(f)}</svg>`)).join('')}</div></div></div>`;
+   <div class="pnl"><h2>Annenin terliği</h2><div class="shopgrid">${Object.entries(SLIPS).map(([id,[n,f,p]])=>item('slip',id,n,p,`<svg viewBox="-45 -45 90 90">${SHOPDEFS}${slipperSVG(f)}</svg>`)).join('')}</div></div></div>`;
   app.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{const [cat,id,p]=b.dataset.buy.split(':');const price=+p;if(wallet()<price)return;const s2=shop();ST.set('p7-coins',wallet()-price);s2.owned.push(id);s2[cat]=id;ST.set('p7-shop',s2);sfx('combo');shopPage()});
   app.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{const [cat,id]=b.dataset.eq.split(':');const s2=shop();s2[cat]=id;ST.set('p7-shop',s2);sfx('tick');shopPage()});
   document.title='Mağaza · Peygamberimizin Hayatı 7';

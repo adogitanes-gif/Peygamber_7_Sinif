@@ -82,7 +82,7 @@ a{color:inherit}
 /* ---------- hub ---------- */
 .top{display:flex;flex-wrap:wrap;align-items:end;justify-content:space-between;gap:16px;padding-block:6px 18px}
 .logo{font-family:var(--f-brand);font-weight:400;font-size:clamp(2.2rem,7vw,4.2rem);line-height:.95;letter-spacing:.01em;
-  background:linear-gradient(90deg,var(--cyan),var(--pink),var(--gold),var(--cyan));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 8s linear infinite;filter:drop-shadow(0 0 18px rgba(34,228,255,.35))}
+  color:var(--gold);-webkit-text-fill-color:var(--gold);filter:drop-shadow(0 0 18px rgba(255,200,61,.35))}
 .logo small{display:block;font-family:var(--f-mono);font-size:.95rem;letter-spacing:.06em;color:var(--ink-soft);-webkit-text-fill-color:var(--ink-soft);filter:none;margin-top:8px}
 @keyframes shine{to{background-position:300% 0}}
 .profile{display:grid;grid-template-columns:auto 1fr auto;gap:14px 20px;align-items:center;background:linear-gradient(135deg,var(--panel2),var(--panel));border:2px solid var(--line);border-radius:18px;padding:14px 18px;margin-bottom:22px}
@@ -425,7 +425,7 @@ body{background:radial-gradient(1200px 600px at 15% -10%,var(--bgA) 0%,transpare
 .flow{stroke:var(--cyan);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 16;animation:flow .8s linear infinite;filter:drop-shadow(0 0 5px var(--cyan))}
 @keyframes flow{to{stroke-dashoffset:-17}}
 /* Elektron: light, modern circuit board — white board, soft teal tracks, copper pads, blue electrons, soft shadows instead of neon glow */
-:root[data-skin="elektron"] .logo{filter:none;background:linear-gradient(90deg,#0a9be0,#12a36a,#c98a3c,#0a9be0);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;letter-spacing:-.02em;font-weight:800}
+:root[data-skin="elektron"] .logo{filter:none;background:none;color:#0a7fc0;-webkit-text-fill-color:#0a7fc0;letter-spacing:-.02em;font-weight:800}
 :root[data-skin="elektron"] .logo small{letter-spacing:.05em}
 :root[data-skin="elektron"] h1,:root[data-skin="elektron"] h2,:root[data-skin="elektron"] h3,:root[data-skin="elektron"] .tno,:root[data-skin="elektron"] .result .score,:root[data-skin="elektron"] .banner{font-weight:800;letter-spacing:-.01em}
 :root[data-skin="elektron"] .st-big,:root[data-skin="elektron"] .st-sub,:root[data-skin="elektron"] .sl,:root[data-skin="elektron"] .s-red{filter:none}
@@ -592,6 +592,8 @@ body.calm .stagebox{box-shadow:none}
 <script src="js/07-fen.js"></script>
 <script src="js/05-lessons.js"></script>
 <script src="js/06-app.js"></script>
+<script>window.G7_GAME={id:'p7',lang:'tr'}</script>
+<script src="js/08-classlink.js"></script>
 <script>
 /* offline helper: keeps a copy of the game on this device (needs https, e.g. GitHub Pages) */
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){

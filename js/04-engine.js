@@ -95,8 +95,8 @@ const ic=k=>`<svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden
 /* ================= wallet, shop, log ================= */
 const HEROC={'c-tr':['Türk Kırmızısı','#e30a17',0],'c-cyan':['Neon Mavi','#22e4ff',0],'c-pink':['Neon Pembe','#ff4fd8',60],'c-green':['Zümrüt','#3dffa2',80],'c-gold':['Altın Robot','#ffc83d',200]};
 const HATS={'h-fes':['Ay-Yıldızlı Fes',0],'h-none':['Şapkasız',0],'h-cap':['Kep',50],'h-helmet':['Uzay Kaskı',120],'h-crown':['Taç',150]};
-const SLIPS={'s-blue':['Mavi Terlik','#4f8bff',0],'s-gold':['Altın Terlik','#ffc83d',100],'s-rainbow':['Gökkuşağı Terlik','url(#rainbow)',180]};
-const shop=()=>{const d={owned:['c-tr','c-cyan','h-fes','h-none','s-blue'],hero:'c-tr',hat:'h-fes',slip:'s-blue'};let s=ST.get('p7-shop',d);
+const SLIPS={'s-blue':['Mavi Terlik','#4f8bff',0],'s-gold':['Altın Terlik','#ffc83d',100],'s-silver':['Gümüş Terlik','#c9d3e0',180]};
+const shop=()=>{const d={owned:['c-tr','c-cyan','h-fes','h-none','s-blue'],hero:'c-tr',hat:'h-fes',slip:'s-blue'};let s=ST.get('p7-shop',d);const LEGACY_SLIP='s-rain'+'bow';if(s.owned.includes(LEGACY_SLIP)||s.slip===LEGACY_SLIP){s.owned=[...new Set(s.owned.map(x=>x===LEGACY_SLIP?'s-silver':x))];if(s.slip===LEGACY_SLIP)s.slip='s-silver';ST.set('p7-shop',s)}
   if(!ST.get('p7-tr',false)){/* one-time: give the Türkiye look to an existing player too (still changeable in the shop) */
     s.owned=[...new Set([...s.owned,'c-tr','h-fes'])];s.hero='c-tr';s.hat='h-fes';ST.set('p7-shop',s);ST.set('p7-tr',true)}
   if(!HEROC[s.hero])s.hero='c-tr';if(!HATS[s.hat])s.hat='h-none';return s};
@@ -120,7 +120,7 @@ function heroSVG(o){o=o||shop();const c=HEROC[o.hero][1];let hat='';
   <circle class="eye" cx="-8" cy="-69" r="4.5" fill="#7df9ff"/><circle class="eye" cx="8" cy="-69" r="4.5" fill="#7df9ff"/>${hat}</g>`}
 function heroBox(o,vb='-60 -125 120 135'){return `<svg viewBox="${vb}" aria-hidden="true">${heroSVG(o)}</svg>`}
 function slipperSVG(fill){return `<g><path d="M-30 -9 Q-34 0 -28 9 Q0 15 26 10 Q36 0 26 -10 Q0 -16 -30 -9 Z" fill="${fill}" stroke="#0a0920" stroke-width="3"/><path d="M-6 -12 Q4 -26 14 -12" fill="none" stroke="#0a0920" stroke-width="6"/><path d="M-6 -12 Q4 -26 14 -12" fill="none" stroke="#fff" stroke-width="2.5"/></g>`}
-const RAINBOW=`<defs><linearGradient id="rainbow" x1="0" x2="1"><stop offset="0" stop-color="#ff5a6e"/><stop offset=".33" stop-color="#ffc83d"/><stop offset=".66" stop-color="#3dffa2"/><stop offset="1" stop-color="#4f8bff"/></linearGradient></defs>`;
+const SHOPDEFS='';
 
 /* ================= animated background: maths symbols (Karanlık/Aydınlık) or a circuit board with electrons (Elektron) ================= */
 const BGFX=(function(){
@@ -363,7 +363,7 @@ function mumAttack(mis,times){if(FAST)return Promise.resolve();
     const m=M[mis]||M.other,slip=SLIPS[shop().slip][1];
     const line=times>=2?`Yine mi sen, ${m.m}?!`:pick([`Al sana, ${m.m}!`,`Defol, ${m.m}!`,`Benim kaşifime dokunma!`]);
     const ov=document.createElement('div');ov.className='ov';ov.setAttribute('role','dialog');ov.setAttribute('aria-label',`${m.m} yakalandı`);
-    ov.innerHTML=`<svg viewBox="0 0 800 440">${RAINBOW}
+    ov.innerHTML=`<svg viewBox="0 0 800 440">${SHOPDEFS}
       <g transform="translate(600,250)"><g class="mon">${monsterSVG(m.c)}</g></g>
       <g transform="translate(600,350)"><g class="mlab"><rect x="-130" y="-22" width="260" height="40" rx="20" fill="#0a0920" stroke="${m.c}" stroke-width="3"/><text x="0" y="6" text-anchor="middle" style="font-family:var(--f-display);font-weight:800;font-size:18px;fill:${m.c}">${m.m}</text></g></g>
       <g transform="translate(170,230)"><g class="mum">${mumSVG()}</g></g>
