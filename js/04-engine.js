@@ -1,7 +1,7 @@
 "use strict";
-/* Fen Bilimleri 7 Oyunları · Engine: sound, narration, shop, home, game engine, overlays, briefing scenes, 3D, lesson player, drawings */
+/* Peygamberimizin Hayatı 7 Oyunları · Engine: sound, narration, shop, home, game engine, overlays, briefing scenes, 3D, lesson player, drawings */
 /* ================= sound (Web Audio, starts after a tap) ================= */
-const SND={ctx:null,on:ST.get('f7-sound',true)};
+const SND={ctx:null,on:ST.get('p7-sound',true)};
 function tone(f,dur,type='square',vol=.07,when=0,to=null){
   if(!SND.on)return;try{SND.ctx=SND.ctx||new (window.AudioContext||window.webkitAudioContext)();const c=SND.ctx,t=c.currentTime+when,o=c.createOscillator(),g=c.createGain();
   o.type=type;o.frequency.setValueAtTime(f,t);if(to)o.frequency.exponentialRampToValueAtTime(to,t+dur);g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(c.destination);o.start(t);o.stop(t+dur+.02)}catch(e){}}
@@ -21,18 +21,18 @@ function sfx(k){
 }
 
 /* ================= narration (Turkish voice if the device has one) ================= */
-const VOICE={on:ST.get('f7-voice',true),v:null};
+const VOICE={on:ST.get('p7-voice',true),v:null};
 /* male narrator: prefer a male Turkish voice (Tolga on Windows, Ahmet in Edge), avoid known female ones; the choice is remembered */
 const FEMALE=/emel|seda|yelda|filiz|zeynep|female|kad[ıi]n/i,MALE=/tolga|ahmet|male|erkek/i;
 /* Some tablets (many Android ones) report their voices late or never list them at all, yet still speak Turkish with lang=tr-TR.
    DEV = "use the device's own default voice": only when the device lists no voices at all (a list without Turkish means Turkish is not installed). */
 const DEV={name:'Cihaz sesi',dev:true,localService:true};
 function pickVoice(){try{const all=speechSynthesis.getVoices(),vs=all.filter(v=>/^tr(-|_|$)/i.test(v.lang)||/turk|türk/i.test(v.name));VOICE.list=vs;VOICE.all=all.length;
-  if(!vs.length){VOICE.v=('speechSynthesis' in window&&!all.length&&VOICE.tries>=6)?DEV:null;return}const saved=ST.get('f7-voicename',null);
+  if(!vs.length){VOICE.v=('speechSynthesis' in window&&!all.length&&VOICE.tries>=6)?DEV:null;return}const saved=ST.get('p7-voicename',null);
   /* offline: online voices (Edge "Ahmet Online (Natural)") cannot speak, so only installed voices count; online: Ahmet first */
   const use=navigator.onLine===false?vs.filter(v=>v.localService!==false):vs,pool=use.length?use:vs;
   /* Ahmet wins whenever he can speak, unless another voice was picked by hand while Ahmet was on the list (m7-voiceok) */
-  const ahmet=pool.find(v=>/ahmet/i.test(v.name)),hand=saved&&ST.get('f7-voiceok',false);
+  const ahmet=pool.find(v=>/ahmet/i.test(v.name)),hand=saved&&ST.get('p7-voiceok',false);
   VOICE.v=(ahmet&&!hand?ahmet:null)||pool.find(v=>v.name===saved)||ahmet||pool.find(v=>MALE.test(v.name))||pool.find(v=>!FEMALE.test(v.name))||pool[0]||null}catch(e){VOICE.v=null;VOICE.list=[]}}
 /* the internet comes and goes: re-pick the voice so the game returns to Ahmet as soon as it can (Edge reloads its online voices a moment later) */
 ['online','offline'].forEach(ev=>window.addEventListener(ev,()=>{pickVoice();[1500,5000,12000].forEach(t=>setTimeout(pickVoice,t))}));
@@ -49,6 +49,7 @@ const LOC={2:'ikide',3:'üçte',4:'dörtte',5:'beşte',6:'altıda',7:'yedide',8:
 const fracWords=(a,b)=>LOC[b]?`${LOC[b]} ${a}`:`${a} bölü ${b}`;
 const UNITS=[['cm³','santimetreküp'],['dm³','desimetreküp'],['m³','metreküp'],['cm²','santimetrekare'],['m²','metrekare'],['mL','mililitre'],['km','kilometre'],['kg','kilogram'],['cm','santimetre'],['TL','lira']];
 function speechText(s){
+  s=s.replace(/\(sav\)/g,' sallallahu aleyhi ve sellem ').replace(/\(cc\)/g,'').replace(/\(ra\)/g,'').replace(/\(as\)/g,' aleyhisselam ').replace(/\bHz\.\s*/g,'Hazreti ')
   s=s.replace(/\|([^|]+)\|/g,' mutlak değer $1 ')
    .replace(/(\d+)\s*([¼½¾])/g,(m,w,f)=>f==='½'?`${w} buçuk`:`${w} tam ${f==='¼'?'dörtte 1':'dörtte 3'}`)
    .replace(/¼/g,' dörtte 1 ').replace(/¾/g,' dörtte 3 ').replace(/½/g,' yarım ')
@@ -95,13 +96,13 @@ const ic=k=>`<svg class="ic" viewBox="0 0 24 24" fill="currentColor" aria-hidden
 const HEROC={'c-tr':['Türk Kırmızısı','#e30a17',0],'c-cyan':['Neon Mavi','#22e4ff',0],'c-pink':['Neon Pembe','#ff4fd8',60],'c-green':['Zümrüt','#3dffa2',80],'c-gold':['Altın Robot','#ffc83d',200]};
 const HATS={'h-fes':['Ay-Yıldızlı Fes',0],'h-none':['Şapkasız',0],'h-cap':['Kep',50],'h-helmet':['Uzay Kaskı',120],'h-crown':['Taç',150]};
 const SLIPS={'s-blue':['Mavi Terlik','#4f8bff',0],'s-gold':['Altın Terlik','#ffc83d',100],'s-silver':['Gümüş Terlik','#c9d3e0',180]};
-const shop=()=>{const d={owned:['c-tr','c-cyan','h-fes','h-none','s-blue'],hero:'c-tr',hat:'h-fes',slip:'s-blue'};let s=ST.get('f7-shop',d);const LEGACY_SLIP='s-rain'+'bow';if(s.owned.includes(LEGACY_SLIP)||s.slip===LEGACY_SLIP){s.owned=[...new Set(s.owned.map(x=>x===LEGACY_SLIP?'s-silver':x))];if(s.slip===LEGACY_SLIP)s.slip='s-silver';ST.set('f7-shop',s)}
-  if(!ST.get('f7-tr',false)){/* one-time: give the Türkiye look to an existing player too (still changeable in the shop) */
-    s.owned=[...new Set([...s.owned,'c-tr','h-fes'])];s.hero='c-tr';s.hat='h-fes';ST.set('f7-shop',s);ST.set('f7-tr',true)}
+const shop=()=>{const d={owned:['c-tr','c-cyan','h-fes','h-none','s-blue'],hero:'c-tr',hat:'h-fes',slip:'s-blue'};let s=ST.get('p7-shop',d);const LEGACY_SLIP='s-rain'+'bow';if(s.owned.includes(LEGACY_SLIP)||s.slip===LEGACY_SLIP){s.owned=[...new Set(s.owned.map(x=>x===LEGACY_SLIP?'s-silver':x))];if(s.slip===LEGACY_SLIP)s.slip='s-silver';ST.set('p7-shop',s)}
+  if(!ST.get('p7-tr',false)){/* one-time: give the Türkiye look to an existing player too (still changeable in the shop) */
+    s.owned=[...new Set([...s.owned,'c-tr','h-fes'])];s.hero='c-tr';s.hat='h-fes';ST.set('p7-shop',s);ST.set('p7-tr',true)}
   if(!HEROC[s.hero])s.hero='c-tr';if(!HATS[s.hat])s.hat='h-none';return s};
-const wallet=()=>ST.get('f7-coins',0);
-function addCoins(n){ST.set('f7-coins',wallet()+n);if(n>0)ST.set('f7-earned',ST.get('f7-earned',0)+n)}
-function logAnswer(e){const L=ST.get('f7-log',[]);L.push(e);ST.set('f7-log',L.slice(-3000))}
+const wallet=()=>ST.get('p7-coins',0);
+function addCoins(n){ST.set('p7-coins',wallet()+n);if(n>0)ST.set('p7-earned',ST.get('p7-earned',0)+n)}
+function logAnswer(e){const L=ST.get('p7-log',[]);L.push(e);ST.set('p7-log',L.slice(-3000))}
 function heroSVG(o){o=o||shop();const c=HEROC[o.hero][1];let hat='';
   if(o.hat==='h-fes')hat=`<path d="M-23 -87 L-17 -116 Q0 -120 17 -116 L23 -87 Q0 -83 -23 -87 Z" fill="#e30a17" stroke="#0a0920" stroke-width="3" stroke-linejoin="round"/>
    <path d="M-17 -116 Q0 -120 17 -116" fill="none" stroke="#8a0010" stroke-width="2"/>
@@ -124,7 +125,7 @@ const SHOPDEFS='';
 /* ================= animated background: maths symbols (Karanlık/Aydınlık) or a circuit board with electrons (Elektron) ================= */
 const BGFX=(function(){
   const cv=document.getElementById('bgfx'),cx=cv.getContext('2d');let W=0,H=0,dpr=1,mode='dark',ps=[],traces=[],chips=[],els=[],raf=0;
-  const G0=['⚛','H₂O','O₂','CO₂','+','−','☀','★','⚡','F','e⁻','Fe','NaCl','🔬','🧪'];
+  const G0=['✦','✧','☾','★','◇','❖','✺','⬡','🌴','🐪','⭐','🌙','⛰️','🏜️'];
   const COL={dark:['#22e4ff','#ff4fd8','#ffc83d','#9b7bff','#3dffa2'],light:['#0b86d1','#cf2f97','#d98a00','#6447ff','#0f9156']};
   function glyphs(){ps=[];for(let i=0;i<26;i++)ps.push({x:Math.random(),y:Math.random(),s:14+Math.random()*26,v:.00012+Math.random()*.00035,r:Math.random()*6,vr:(Math.random()-.5)*.004,g:pick(G0),c:pick(COL[mode]||COL.dark),a:.12+Math.random()*.22})}
   function pcb(){traces=[];chips=[];els=[];const st=34*dpr,cols=Math.ceil(W/st),rows=Math.ceil(H/st),D=[[1,0],[0,1],[-1,0],[0,-1]];
@@ -153,22 +154,22 @@ const BGFX=(function(){
   addEventListener('resize',resize);
   return {set(m){mode=m;if(m!=='elektron')glyphs();resize();if(RM)draw();else if(!raf)raf=requestAnimationFrame(frame)}};
 })();
-const SKINS={dark:'Karanlık',light:'Aydınlık',elektron:'Elektron'};
+const SKINS={dark:'Karanlık',light:'Aydınlık'};
 const skin=()=>document.documentElement.getAttribute('data-skin')||'dark';
-function applySkin(s){if(!SKINS[s])s='dark';document.documentElement.setAttribute('data-skin',s);ST.set('f7-skin',s);BGFX.set(s)}
-applySkin(ST.get('f7-skin','dark'));
+function applySkin(s){if(!SKINS[s])s='dark';document.documentElement.setAttribute('data-skin',s);ST.set('p7-skin',s);BGFX.set(s)}
+applySkin(SKINS[ST.get('p7-skin','dark')]?ST.get('p7-skin','dark'):'dark');
 
 /* ================= hub ================= */
 const app=document.getElementById('app');
 const starsOf=s=>s>=9?3:s>=7?2:s>=5?1:0;
 const starStr=n=>'★'.repeat(n)+'☆'.repeat(3-n);
-function goalBar(){const g=ST.get('f7-goal',{target:500,reward:'Aile ödülü',base:0});const got=Math.max(0,ST.get('f7-earned',0)-g.base);const pc=Math.min(100,Math.round(got/g.target*100));
+function goalBar(){const g=ST.get('p7-goal',{target:500,reward:'Aile ödülü',base:0});const got=Math.max(0,ST.get('p7-earned',0)-g.base);const pc=Math.min(100,Math.round(got/g.target*100));
   return `<div class="goal"><span>Aile ödülü: <b style="color:var(--ink)">${g.reward}</b> · ${Math.min(got,g.target)} / ${g.target} altın</span><div class="gbar"><i style="width:${pc}%"></i></div></div>`}
 /* ================= Bugünün görevi: daily mission with spaced review, planned from his own answers ================= */
 /* Each lesson's memory state comes from the answer log: accuracy of its last 10 answers and days since it was last practised.
    Review interval (expanding, Leitner-style): 1 day if accuracy < 70 %, 3 days if 70–89 %, 7 days if 90 % or more. */
 const dayKey=(t=Date.now())=>new Date(t).toLocaleDateString('sv');
-function srsState(){const now=Date.now(),st={};for(const e of ST.get('f7-log',[])){if(!e.ls)continue;const s=st[e.ls]||(st[e.ls]={n:0,last:0,recent:[]});s.n++;s.last=Math.max(s.last,e.d||0);s.recent.push(e.ok?1:0);if(s.recent.length>10)s.recent.shift()}
+function srsState(){const now=Date.now(),st={};for(const e of ST.get('p7-log',[])){if(!e.ls)continue;const s=st[e.ls]||(st[e.ls]={n:0,last:0,recent:[]});s.n++;s.last=Math.max(s.last,e.d||0);s.recent.push(e.ok?1:0);if(s.recent.length>10)s.recent.shift()}
   for(const id in st){const s=st[id];s.acc=s.recent.reduce((a,b)=>a+b,0)/s.recent.length;s.days=(now-s.last)/864e5;s.interval=s.acc>=.9?7:s.acc>=.7?3:1;
     s.weak=s.recent.length>=3&&s.acc<.7;s.due=s.days>=s.interval;s.next=Math.max(0,s.interval-s.days)}return st}
 function makePlan(){const S0=srsState(),play=LESSONS.filter(l=>l.gen),ids=[],why={},add=(l,w,n)=>{for(let i=0;i<n;i++)ids.push(l.id);if(!why[l.id])why[l.id]=w};
@@ -176,13 +177,13 @@ function makePlan(){const S0=srsState(),play=LESSONS.filter(l=>l.gen),ids=[],why
   play.filter(l=>S0[l.id]&&!S0[l.id].weak&&S0[l.id].due).sort((a,b)=>S0[b.id].days-S0[a.id].days).slice(0,3).forEach(l=>add(l,`tekrar zamanı · ${Math.max(1,Math.round(S0[l.id].days))} gün önce`,1));
   const fresh=play.find(l=>!S0[l.id]||(S0[l.id].recent.length<3&&S0[l.id].acc<.7));if(fresh)add(fresh,'sıradaki yeni ders',2);
   const seen=play.filter(l=>S0[l.id]),pool=seen.length?seen:play.slice(0,6);while(ids.length<10)add(pick(pool),'karışık tekrar',1);
-  const plan={date:dayKey(),ids:shuffle(ids.slice(0,10)),why};ST.set('f7-dplan',plan);return plan}
-function getPlan(){const p=ST.get('f7-dplan',null);return p&&p.date===dayKey()&&p.ids&&p.ids.length===10?p:makePlan()}
+  const plan={date:dayKey(),ids:shuffle(ids.slice(0,10)),why};ST.set('p7-dplan',plan);return plan}
+function getPlan(){const p=ST.get('p7-dplan',null);return p&&p.date===dayKey()&&p.ids&&p.ids.length===10?p:makePlan()}
 const planLessons=p=>p.ids.map(id=>LESSONS.find(l=>l.id===id)).filter(Boolean);
-function dailyInfo(){const d=ST.get('f7-daily',{last:null,streak:0,days:[]}),today=dayKey(),y=dayKey(Date.now()-864e5);return {...d,doneToday:d.last===today,alive:d.last===today||d.last===y}}
+function dailyInfo(){const d=ST.get('p7-daily',{last:null,streak:0,days:[]}),today=dayKey(),y=dayKey(Date.now()-864e5);return {...d,doneToday:d.last===today,alive:d.last===today||d.last===y}}
 function startDaily(){const p=getPlan(),items=planLessons(p);if(items.length<10){makePlan();return startDaily()}start(GU(items[0].th),{daily:{items,why:p.why}})}
-function finishDaily(){const d=dailyInfo(),today=dayKey();let bonus=0;ST.set('f7-dplan',null);
-  if(!d.doneToday){const streak=d.alive?d.streak+1:1;bonus=20+Math.min(streak,7)*5;addCoins(bonus);ST.set('f7-daily',{last:today,streak,days:[...new Set([...(d.days||[]),today])].slice(-30),best:Math.max(streak,d.best||0)})}
+function finishDaily(){const d=dailyInfo(),today=dayKey();let bonus=0;ST.set('p7-dplan',null);
+  if(!d.doneToday){const streak=d.alive?d.streak+1:1;bonus=20+Math.min(streak,7)*5;addCoins(bonus);ST.set('p7-daily',{last:today,streak,days:[...new Set([...(d.days||[]),today])].slice(-30),best:Math.max(streak,d.best||0)})}
   return {bonus,...dailyInfo()}}
 function weekDots(){const set=new Set(dailyInfo().days||[]);let s='';for(let i=6;i>=0;i--){const t=Date.now()-i*864e5,k=dayKey(t);s+=`<span class="wd${set.has(k)?' on':''}${i===0?' today':''}" title="${k}"><i></i>${new Date(t).toLocaleDateString('tr',{weekday:'short'})}</span>`}return s}
 function dailyCard(){const d=dailyInfo(),p=getPlan(),topics=[...new Set(p.ids)].map(id=>LESSONS.find(l=>l.id===id)).filter(Boolean);
@@ -191,16 +192,16 @@ function dailyCard(){const d=dailyInfo(),p=getPlan(),topics=[...new Set(p.ids)].
    <div class="chips" style="justify-content:flex-start">${topics.slice(0,7).map(l=>`<span class="chip">${l.no} ${l.t} · ${p.why[l.id]||''}</span>`).join('')}</div>
    <div class="wrow"><div class="wk" aria-label="Son 7 gün">${weekDots()}</div><a class="btn ${d.doneToday?'':'gold'}" id="daily" href="#gorev">${ic('play')} ${d.doneToday?'Yeni karışık set':'Göreve başla'}</a></div></section>`}
 function hub(){
-  const best=ST.get('f7-best',{}),total=G.reduce((a,g)=>a+starsOf(best[g.id]??0),0);
-  const lb=ST.get('f7-lbest',{}),last=ST.get('f7-last',null),lstars=LESSONS.reduce((a,l)=>a+starsOf(lb[l.id]??0),0),done=LESSONS.filter(l=>(lb[l.id]??0)>=7).length;
+  const best=ST.get('p7-best',{}),total=G.reduce((a,g)=>a+starsOf(best[g.id]??0),0);
+  const lb=ST.get('p7-lbest',{}),last=ST.get('p7-last',null),lstars=LESSONS.reduce((a,l)=>a+starsOf(lb[l.id]??0),0),done=LESSONS.filter(l=>(lb[l.id]??0)>=7).length;
   /* Kitap Ağacı: book ▸ theme ▸ lesson ▸ branches (the parts of its Öğren lesson, its game, its book pages); open state is remembered */
-  const OPEN=ST.get('f7-open',{b1:true,b2:true});const lastId=last&&(last.hash.match(/(\d-\d)/)||[])[1];if(lastId&&OPEN['th'+lastId[0]]===undefined)OPEN['th'+lastId[0]]=true;
+  const OPEN=ST.get('p7-open',{b1:true,b2:true});const lastId=last&&(last.hash.match(/(\d-\d)/)||[])[1];if(lastId&&OPEN['th'+lastId[0]]===undefined)OPEN['th'+lastId[0]]=true;
   const op=k=>OPEN[k]?' open':'';
   const branches=l=>{let it=[];
     if(l.script||l.learn!=null){it=scenesFor(l).map((s,k)=>`<li><a class="br${s.check?' chk':''}" href="#ogren-${l.id}-${k}">${ic(s.check?'book':'play')}<span>${k+1}. ${s.name}</span></a></li>`);
       if(l.learn!=null)it.push(`<li><a class="br" href="#tema-1">${ic('book')}<span>Tüm görev brifingi</span></a></li>`)}
     it.push(`<li>${l.gen?`<a class="br play" href="#ders-${l.id}">${ic('play')}<span>Oyna: 10 soru</span></a>`:`<span class="br soon">Oyun · yakında</span>`}</li>`);
-    it.push(`<li><span class="br info">${ic('book')}<span>Kitapta: ${l.book}. Kitap, s. ${l.p}</span></span></li>`);
+    it.push(`<li><span class="br info">${ic('book')}<span>Kitapta: s. ${l.p}</span></span></li>`);
     return `<ul class="brs">${it.join('')}</ul>`};
   const row=l=>{const b=lb[l.id]??0,g=GU(l.th),q=fold(`${l.no} ${l.t} ${l.kw} ${g.tema} ${g.name} ${g.topics}`);
     return `<li class="ls" data-q="${q}"><details data-k="${l.id}"${op(l.id)}><summary><span class="tw" aria-hidden="true"></span><span class="lno">${l.no}</span><span class="lmain"><b>${l.t}</b><span class="lpg">s. ${l.p}</span></span>
@@ -209,25 +210,25 @@ function hub(){
   const theme=g=>{const ls=LESSONS.filter(l=>l.th===g.id),dn=ls.filter(l=>(lb[l.id]??0)>=7).length,b=best[g.id];
     return `<li class="thm" style="--hue:${g.hue}"><details data-k="th${g.id}"${op('th'+g.id)}><summary class="thh"><span class="tw" aria-hidden="true"></span><span class="tno">${String(g.id).padStart(2,'0')}</span>
       <span class="thn"><span class="tema">${g.id}. Ünite · ${g.pages} · ${ls.length} ders</span><b>${g.tema}</b></span><span class="badge">${dn} / ${ls.length}</span></summary>
-      <div class="thx"><a class="btn sm gold" href="#tema-${g.id}">${g.brief?'Brifing + ':''}Ünite görevi: ${g.name}</a><span class="hint">Ünitenin derslerinden karışık 10 soru${b!=null?` · en iyi ${b} / 10`:''}</span>${(()=>{const t=ST.get('f7-test',{})[g.id];return `<a class="btn sm" href="#test-${g.id}">${ic('auto')} Seviye testi</a><span class="hint">${t?`son test ${t.s} / ${t.n} · ${t.known.length} ders biliyor`:'Bildiğin dersleri bul, eksiklerini gör'}</span>`})()}</div>
+      <div class="thx"><a class="btn sm gold" href="#tema-${g.id}">${g.brief?'Brifing + ':''}Ünite görevi: ${g.name}</a><span class="hint">Ünitenin derslerinden karışık 10 soru${b!=null?` · en iyi ${b} / 10`:''}</span>${(()=>{const t=ST.get('p7-test',{})[g.id];return `<a class="btn sm" href="#test-${g.id}">${ic('auto')} Seviye testi</a><span class="hint">${t?`son test ${t.s} / ${t.n} · ${t.known.length} ders biliyor`:'Bildiğin dersleri bul, eksiklerini gör'}</span>`})()}</div>
       <ol class="lsl">${ls.map(row).join('')}</ol></details></li>`};
   const book=bk=>{const th=G.filter(g=>g.book===bk),n=LESSONS.filter(l=>l.book===bk).length;if(!th.length)return '';
-    return `<section class="book"><details data-k="b${bk}"${op('b'+bk)}><summary class="bks"><span class="tw" aria-hidden="true"></span><h2>${bk}. Kitap</h2><span class="hint">${th.length} ünite · ${n} ders · ${th[0].id}.–${th[th.length-1].id}. ünite</span></summary><ol class="thl">${th.map(theme).join('')}</ol></details></section>`};
-  app.innerHTML=`<header class="top"><h1 class="logo">FEN BİLİMLERİ 7<small>DERS HARİTASI · 2 KİTAP · ${G.length} ÜNİTE · ${LESSONS.length} DERS · ${lstars + total} YILDIZ</small></h1></header>
-   <section class="profile"><div class="av">${heroBox()}</div><div class="pinfo"><span class="nm">Kaşif Atom</span><span class="coins"><i class="coin"></i>${wallet()} altın</span>${goalBar()}</div>
+    return `<section class="book"><details data-k="b${bk}"${op('b'+bk)}><summary class="bks"><span class="tw" aria-hidden="true"></span><h2>Ders Kitabı</h2><span class="hint">${th.length} ünite · ${n} ders · ${th[0].id}.–${th[th.length-1].id}. ünite</span></summary><ol class="thl">${th.map(theme).join('')}</ol></details></section>`};
+  app.innerHTML=`<header class="top"><h1 class="logo">PEYGAMBERİMİZİN HAYATI 7<small>DERS HARİTASI · 1 KİTAP · ${G.length} ÜNİTE · ${LESSONS.length} DERS · ${lstars + total} YILDIZ</small></h1></header>
+   <section class="profile"><div class="av">${heroBox()}</div><div class="pinfo"><span class="nm">Kaşif</span><span class="coins"><i class="coin"></i>${wallet()} altın</span>${goalBar()}</div>
    <div class="pbtns"><a class="btn gold" href="#magaza">Mağaza</a><a class="btn" href="#rapor">Ebeveyn Raporu</a><button class="btn" id="snd" type="button">${ic('sound')} ${SND.on?'Ses: açık':'Ses: kapalı'}</button><button class="btn" id="fullh" type="button">${ic('full')} Tam ekran</button><span id="instslot"></span>
      <div class="skins" role="group" aria-label="Görünüm">${Object.entries(SKINS).map(([k,n])=>`<button class="sk" type="button" data-skin="${k}" aria-pressed="${skin()===k}"><i class="sw sw-${k}"></i>${n}</button>`).join('')}</div></div></section>
    ${dailyCard()}
    <section class="homebar">${last?`<a class="btn prime" id="cont" href="${last.hash}">${ic('play')} Devam et: ${last.label}</a>`:`<a class="btn prime" id="cont" href="#ogren-${LESSONS[0].id}">${ic('play')} Başla: ${LESSONS[0].no} ${LESSONS[0].t}</a>`}
-     <label class="srch"><span class="sr-only">Konu ara</span><input id="q" type="search" placeholder="Konu ara: mercek, kalp, atom, enerji…" autocomplete="off" enterkeyhint="search"></label>
+     <label class="srch"><span class="sr-only">Konu ara</span><input id="q" type="search" placeholder="Konu ara: hicret, taif, sabır, oruç, ilim…" autocomplete="off" enterkeyhint="search"></label>
      <span class="tbtns"><button class="btn sm" id="exall" type="button">＋ Tümünü aç</button><button class="btn sm" id="coall" type="button">－ Tümünü kapat</button></span>
      <span class="hint">${done} / ${LESSONS.length} ders tamamlandı (en az 7 doğru)</span></section>
-   <p class="empty" id="noq" hidden>Bu aramayla eşleşen ders yok. Başka bir kelime dene: "mercek", "kan", "yıldız"…</p>
+   <p class="empty" id="noq" hidden>Bu aramayla eşleşen ders yok. Başka bir kelime dene: "hicret", "sabır", "akabe"…</p>
    <nav class="tree" aria-label="Kitap ağacı">${book(1)}${book(2)}</nav>
    <p class="foot">Kitap ağacında ＋ işaretine basarak üniteleri ve dersleri aç; dersin altındaki dallar Öğren anlatımının bölümleridir, istediğine doğrudan atlayabilirsin. Her ders kitaptaki bir konudur ve sayfa numarası yanında yazar. Her oyun 10 sorudur; sorular her seferinde karışık sırayla gelir. Doğru cevap 10 altın, 3'lü seri ×2, 5'li seri ×3. Altınlar ve rapor yalnızca bu cihazda saklanır. Bilgisayara bir oyun kumandası (örneğin PS5 DualSense) bağlıysa yön tuşlarıyla gez, ✕ ile seç, ○ ile geri dön.</p>`;
-  document.getElementById('snd').onclick=()=>{SND.on=!SND.on;ST.set('f7-sound',SND.on);hub()};
+  document.getElementById('snd').onclick=()=>{SND.on=!SND.on;ST.set('p7-sound',SND.on);hub()};
   document.getElementById('fullh').onclick=toggleFull;
-  delete app.dataset.searching;const saveOpen=()=>ST.set('f7-open',OPEN);
+  delete app.dataset.searching;const saveOpen=()=>ST.set('p7-open',OPEN);
   app.querySelectorAll('details[data-k]').forEach(d=>d.addEventListener('toggle',()=>{if(app.dataset.searching)return;OPEN[d.dataset.k]=d.open;saveOpen();if(d.open)sfx('tick')}));
   const setAll=v=>{app.querySelectorAll('details[data-k]').forEach(d=>{d.open=v;OPEN[d.dataset.k]=v});if(!v){OPEN.b1=OPEN.b2=true;app.querySelectorAll('.book>details').forEach(d=>d.open=true)}saveOpen()};
   document.getElementById('exall').onclick=()=>setAll(true);document.getElementById('coall').onclick=()=>setAll(false);
@@ -237,7 +238,7 @@ function hub(){
     app.querySelectorAll('.book').forEach(b=>{const vis=[...b.querySelectorAll('.thm')].some(t=>!t.hidden);b.hidden=!vis;const d=b.querySelector(':scope>details');d.open=s?vis:!!OPEN[d.dataset.k]});
     document.getElementById('noq').hidden=any;if(!s)delete app.dataset.searching};
   app.querySelectorAll('.sk').forEach(b=>b.onclick=()=>{applySkin(b.dataset.skin);sfx(b.dataset.skin==='elektron'?'zapup':'tick');hub();const f=app.querySelector(`.sk[data-skin="${b.dataset.skin}"]`);if(f&&PAD.on)f.focus({preventScroll:true})});
-  document.title='Fen Bilimleri 7 Oyunları';
+  document.title='Peygamberimizin Hayatı 7 Oyunları';
 }
 
 /* ================= game engine ================= */
@@ -253,7 +254,7 @@ function next(){
 function hud(){
   const g=S.g,marks=Array.from({length:S.n},(_,i)=>`<i class="${S.marks[i]===true?'ok':S.marks[i]===false?'bad':i===S.i?'now':''}"></i>`).join('');
   return `<div class="hud" style="--hue:${g.hue}"><button class="iconbtn" id="back" type="button">${ic('home')} Harita</button>
-    <div class="meta"><span class="tema">${S.test?(S.i>=S.n?'Seviye testi tamamlandı':`Seviye testi · bu soru: ${S.cur.no} ${S.cur.t}`):S.daily?`Bugünün görevi · bu soru: ${S.lesson.no} ${S.lesson.t} · ${S.daily.why[S.lesson.id]||''}`:S.lesson?`Ders ${S.lesson.no} · ${S.lesson.book}. Kitap s. ${S.lesson.p}`:S.skill?'Pratik · '+SK1[S.skill]:g.id+'. Tema · '+g.tema}</span><h2>${S.test?`Seviye Testi · ${g.id}. Ünite`:S.daily?'Bugünün Görevi':S.lesson?S.lesson.t:g.name}</h2></div>
+    <div class="meta"><span class="tema">${S.test?(S.i>=S.n?'Seviye testi tamamlandı':`Seviye testi · bu soru: ${S.cur.no} ${S.cur.t}`):S.daily?`Bugünün görevi · bu soru: ${S.lesson.no} ${S.lesson.t} · ${S.daily.why[S.lesson.id]||''}`:S.lesson?`Ders ${S.lesson.no} · s. ${S.lesson.p}`:S.skill?'Pratik · '+SK1[S.skill]:g.id+'. Tema · '+g.tema}</span><h2>${S.test?`Seviye Testi · ${g.id}. Ünite`:S.daily?'Bugünün Görevi':S.lesson?S.lesson.t:g.name}</h2></div>
     <span class="streak${S.streak>=3?' hot':''}" id="streak">SERİ ${S.streak}</span><span class="coins" id="wallet"><i class="coin"></i><span id="wv">${wallet()}</span></span>
     <div class="hbtns" role="toolbar" aria-label="Oyun kontrolleri"><button class="iconbtn" id="rd" type="button" title="Soruyu ve seçenekleri sesli oku">${ic('voice')} Sesli oku</button>
       ${S.lesson&&(S.lesson.script||S.lesson.learn!=null)?`<button class="iconbtn" id="rb" type="button" title="Bu dersin anlatımını izle">${ic('book')} Öğren</button>`:g.brief&&!S.lesson?`<button class="iconbtn" id="rb" type="button" title="Görev brifingini yeniden izle">${ic('book')} Brifing</button>`:''}
@@ -265,7 +266,7 @@ function bindHud(){
   const $=id=>document.getElementById(id);
   $('back').onclick=()=>{hush();location.hash=''};
   $('full').onclick=toggleFull;
-  $('snd2').onclick=()=>{SND.on=!SND.on;ST.set('f7-sound',SND.on);$('snd2').innerHTML=`${ic('sound')} ${SND.on?'Ses açık':'Ses kapalı'}`;$('snd2').classList.toggle('on',SND.on)};
+  $('snd2').onclick=()=>{SND.on=!SND.on;ST.set('p7-sound',SND.on);$('snd2').innerHTML=`${ic('sound')} ${SND.on?'Ses açık':'Ses kapalı'}`;$('snd2').classList.toggle('on',SND.on)};
   if($('rb'))$('rb').onclick=()=>{const g=S.g,l=S.lesson;S=null;hush();if(l&&(l.script||l.learn!=null))briefing(g,0,l,scenesFor(l));else briefing(g)};
   $('rd').onclick=()=>{if(!VOICE.v){pickVoice()}if(!VOICE.v){$('rd').innerHTML=`${ic('voice')} Türkçe ses yok`;voiceHelp();return}hush();say(promptSpeech(),true)};
 }
@@ -399,13 +400,13 @@ function mumAttack(mis,times){if(FAST)return Promise.resolve();
   });
 }
 function result(){
-  const s=S.score,st=starsOf(s),g=S.g;const best=ST.get('f7-best',{});
+  const s=S.score,st=starsOf(s),g=S.g;const best=ST.get('p7-best',{});
   const D=S.daily?finishDaily():null;
-  if(D){}else if(S.lesson){const lb=ST.get('f7-lbest',{});if(!(lb[S.lesson.id]>=s)){lb[S.lesson.id]=s;ST.set('f7-lbest',lb)}}
-  else if(!S.skill&&!(best[g.id]>=s)){best[g.id]=s;ST.set('f7-best',best)}
+  if(D){}else if(S.lesson){const lb=ST.get('p7-lbest',{});if(!(lb[S.lesson.id]>=s)){lb[S.lesson.id]=s;ST.set('p7-lbest',lb)}}
+  else if(!S.skill&&!(best[g.id]>=s)){best[g.id]=s;ST.set('p7-best',best)}
   const nl=S.lesson&&!D?nextLesson(S.lesson):null;
   const dailyHTML=D?`<p class="coins" style="justify-content:center">${D.bonus?`<i class="coin"></i>+${D.bonus} görev bonusu · `:''}${D.streak} gün seri</p><div class="wk" style="justify-content:center">${weekDots()}</div>`:'';
-  const msg=st===3?'Harika! Bu görevi ustaca bitirdin.':st===2?'Çok iyi! Biraz daha pratikle tam olacak.':st===1?'İyi bir başlangıç. Çözümleri okuyup tekrar dene.':`${S.lesson?`${S.lesson.book}. Kitap, s. ${S.lesson.p}`:`${g.book}. Kitap, ${g.pages}`} sayfalarına göz atıp tekrar dene.`;
+  const msg=st===3?'Harika! Bu görevi ustaca bitirdin.':st===2?'Çok iyi! Biraz daha pratikle tam olacak.':st===1?'İyi bir başlangıç. Çözümleri okuyup tekrar dene.':`${S.lesson?`Kitabın ${S.lesson.p}`:`Kitabın ${g.pages.replace(/^s. /,"")}`} sayfalarına göz atıp tekrar dene.`;
   const cnt={};S.monsters.forEach(m=>cnt[m]=(cnt[m]||0)+1);
   const chips=Object.keys(cnt).map(k=>`<span class="chip" style="border-color:${(M[k]||M.other).c}">${(M[k]||M.other).m} ×${cnt[k]}</span>`).join('');
   const nextG=G.find(x=>x.id===g.id+1);
@@ -689,15 +690,29 @@ function fallback3D(kind,p){if(kind==='flip')return miniReflectSVG();if(kind==='
 const fitFs=(t,max,k)=>Math.max(16,Math.min(max,k/Math.max(1,String(t).replace(/<[^>]+>|&[a-z]+;/g,'x').length)));
 /* the first text line (below the TUZAK/İPUCU stamp) that no other text on the board already uses */
 function freeY(st){const used=[...st.querySelectorAll('text')].map(t=>+t.getAttribute('y')).filter(v=>v);return [300,388,350,130,90].find(y=>used.every(u=>Math.abs(u-y)>36))||388}
+/* what is already drawn: vertical bands [top,bottom] in board units (whole-board backgrounds ignored) */
+function bands(st){try{const R=st.getBoundingClientRect();if(!R.width)return null;const k=800/R.width;
+  return [...st.children].map(c=>{const r=c.getBoundingClientRect();return r.height?[(r.top-R.top)*k,(r.bottom-R.top)*k]:null}).filter(b=>b&&b[1]-b[0]<380)}catch(e){return null}}
+const isFree=(B,a,b)=>B.every(([t,m])=>m<a||t>b);
+/* a text line asked for at y moves to the nearest free line if something already sits there */
+function freeLine(st,y){const B=bands(st);if(!B||isFree(B,y-30,y+10))return y;
+  const c=[410,388,360,330,300,270,240,210,180,150,120,90].sort((p,q)=>Math.abs(p-y)-Math.abs(q-y)).find(v=>isFree(B,v-30,v+10));return c==null?y:c}
+/* TUZAK/İPUCU: stamp plus its line where both fit; if the board is full, on a calm panel over it */
+async function stampSlot(st,word,col,t,cls){const B=bands(st);let s=null;
+  if(B)s=[[212,300],[140,226],[330,404],[96,178],[262,346]].find(([sy,ty])=>isFree(B,sy-42,sy+36)&&(!t||isFree(B,ty-30,ty+12)));
+  else{const y=freeY(st);s=[212,y]}
+  if(!s){s=[200,290];add(st,`<rect x="90" y="150" width="620" height="170" rx="22" class="card-r" style="opacity:.97"/>`)}
+  await stamp(st,400,s[0],word,col);if(t)await txt0(st,t,s[1],cls)}
+const txt0=async(st,t,y=300,cls='',x=400,max=28)=>{await pop(add(st,`<text x="${x}" y="${y}" text-anchor="middle" class="st-txt${cls}" style="font-size:${fitFs(t,max,x===400?1500:760)}px">${t}</text>`));await wait(200)};
 const OPS={
  title:async(st,t,sub)=>{pop(add(st,`<text x="400" y="140" text-anchor="middle" class="st-big" style="font-size:${fitFs(t,64,1080)}px">${t}</text>`));if(sub)pop(add(st,T(400,192,sub,'st-lbl')),300);await dropIn(heroAt(st,400,410),400)},
  eq:async(st,t,y=120,cls='')=>{await pop(add(st,`<text x="400" y="${y}" text-anchor="middle" class="st-eq${cls}" style="font-size:${fitFs(t,46,1120)}px">${t}</text>`));await wait(250)},
- txt:async(st,t,y=300,cls='',x=400,max=28)=>{await pop(add(st,`<text x="${x}" y="${y}" text-anchor="middle" class="st-txt${cls}" style="font-size:${fitFs(t,max,x===400?1500:760)}px">${t}</text>`));await wait(200)},
- lines:async(st,arr,y0=120,cls='')=>{for(let i=0;i<arr.length;i++){sfx('tick');await OPS.txt(st,arr[i],y0+i*58,cls)}},
+ txt:async(st,t,y=300,cls='',x=400,max=28)=>txt0(st,t,x===400?freeLine(st,y):y,cls,x,max),
+ lines:async(st,arr,y0=120,cls='')=>{for(let i=0;i<arr.length;i++){sfx('tick');await txt0(st,arr[i],y0+i*58,cls)}},
  rules:async(st,arr,y0=96)=>{const h=Math.min(66,(430-y0)/arr.length);for(let i=0;i<arr.length;i++){const y=y0+i*h;
    pop(add(st,`<rect x="70" y="${y}" width="660" height="${h-12}" rx="14" class="card-r"/><text x="96" y="${y+(h-12)/2+9}" class="st-txt" style="font-size:${fitFs(arr[i],26,1700)}px">${arr[i]}</text>`));sfx('tick');await wait(380)}},
- trap:async(st,t)=>{const y=freeY(st);await stamp(st,400,212,'TUZAK!');if(t)await OPS.txt(st,t,y,' st-bad')},
- tip:async(st,t)=>{const y=freeY(st);await stamp(st,400,212,'İPUCU','var(--green)');if(t)await OPS.txt(st,t,y,' st-ok')},
+ trap:async(st,t)=>stampSlot(st,'TUZAK!','var(--red)',t,' st-bad'),
+ tip:async(st,t)=>stampSlot(st,'İPUCU','var(--green)',t,' st-ok'),
  svg:async(st,s,x=200,y=80,w=400,h=290)=>{await pop(add(st,s.replace('<svg ',`<svg x="${x}" y="${y}" width="${w}" height="${h}" `)),0,600);await wait(300)},
  table:async(st,rows,y0=110)=>{const cols=rows[0].length,cw=Math.min(210,700/cols),x0=400-cw*cols/2;
    for(let r=0;r<rows.length;r++){let s='';for(let c=0;c<cols;c++)s+=`<rect x="${x0+c*cw}" y="${y0+r*54}" width="${cw}" height="54" class="panel-r"/><text x="${x0+c*cw+cw/2}" y="${y0+r*54+35}" text-anchor="middle" class="st-txt${r===0?' st-cyan':''}" style="font-size:${Math.min(22,Math.floor((cw-10)*1.85/Math.max(1,String(rows[r][c]).length)))}px">${rows[r][c]}</text>`;
@@ -797,11 +812,11 @@ function askCheck(st,l){return new Promise(res=>{
 function testPlan(g){const ls=LESSONS.filter(l=>l.th===g.id&&l.gen),per=ls.length>=6?2:ls.length>=4?2:ls.length>=3?3:4,seq=[];
   for(let r=0;r<per;r++)seq.push(...shuffle(ls));return {ls,seq:seq.slice(0,16)}}
 function testQ(l){return l.gen()}
-function testResult(){const g=S.g,log=ST.get('f7-log',[]).slice(-S.n),per={};
+function testResult(){const g=S.g,log=ST.get('p7-log',[]).slice(-S.n),per={};
   S.test.seq.forEach((l,i)=>{const r=per[l.id]||(per[l.id]={l,ok:0,n:0});r.n++;if(S.marks[i])r.ok++});
-  const rows=Object.values(per),known=rows.filter(r=>r.ok===r.n).map(r=>r.l.id),lb=ST.get('f7-lbest',{});
-  known.forEach(id=>{if(!(lb[id]>=7))lb[id]=7});ST.set('f7-lbest',lb);
-  const T=ST.get('f7-test',{});T[g.id]={d:Date.now(),s:S.score,n:S.n,known};ST.set('f7-test',T);
+  const rows=Object.values(per),known=rows.filter(r=>r.ok===r.n).map(r=>r.l.id),lb=ST.get('p7-lbest',{});
+  known.forEach(id=>{if(!(lb[id]>=7))lb[id]=7});ST.set('p7-lbest',lb);
+  const T=ST.get('p7-test',{});T[g.id]={d:Date.now(),s:S.score,n:S.n,known};ST.set('p7-test',T);
   const first=rows.filter(r=>r.ok<r.n).sort((a,b)=>a.ok/a.n-b.ok/b.n||LESSONS.indexOf(a.l)-LESSONS.indexOf(b.l))[0];
   const tag=r=>r.ok===r.n?['Biliyor','var(--green)']:r.ok>0?['Tekrar et','var(--gold)']:['Öğren','var(--red)'];
   const lrow=r=>{const [t,c]=tag(r),l=r.l,learn=l.script||l.learn!=null;return `<div class="trow"><span class="tname">${l.no} ${l.t}</span><span class="chip" style="border-color:${c};color:${c}">${t} · ${r.ok}/${r.n}</span>

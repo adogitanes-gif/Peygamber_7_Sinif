@@ -1,5 +1,5 @@
 "use strict";
-/* Fen Bilimleri 7 Oyunları · Helpers, content registry, misconception catalogue */
+/* Peygamberimizin Hayatı 7 Oyunları · Helpers, content registry, misconception catalogue */
 /* ================= helpers ================= */
 const ri=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
 const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -32,5 +32,8 @@ const ST={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.par
 /* ================= content registry: every js/units/u<N>.js file fills this ================= */
 /* M is the misconception catalogue; each unit adds its own entries (keys u<N>_…). "other" catches the rest. */
 const M={other:{m:'Dikkat Canavarı',c:'#a9acdf',t:'Dikkat hatası veya henüz sınıflanmamış hata',s:`Acele etme. Soruyu bir kez daha oku, her seçeneği düşün.`,d:`Bu hata belirli bir kavram yanılgısına uymuyor. Aynı konuda tekrar ederse dersin Öğren anlatımını yeniden izlemek ve kitaptaki sayfalara bakmak iyi olur.`,p:null}};
-const FEN={units:{},lessons:[],unit(n,o){this.units[n]=o},mis(o){for(const k in o)M[k]={p:null,...o[k]}},lesson(o){this.lessons.push(o)}};
+const FEN={units:{},lessons:[],unit(n,o){this.units[n]=o},mis(o){for(const k in o)M[k]={p:null,...o[k]}},lesson(o){if(o.script)o.script=o.script.map(([n,sp,ops])=>[n,sp,layerOps(ops||[])]);this.lessons.push(o)}};
+/* draw order inside a scene: drawings and boxes first, then caption lines, then the TUZAK/İPUCU stamp,
+   so captions and stamps always see what is on the board and can move to a free spot (order within a group kept) */
+function layerOps(ops){const r=op=>op[0]==='trap'||op[0]==='tip'?2:op[0]==='txt'?1:0;return ops.map((op,i)=>[op,i]).sort((a,b)=>r(a[0])-r(b[0])||a[1]-b[1]).map(x=>x[0])}
 const SK1={};
