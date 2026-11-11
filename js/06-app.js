@@ -1,19 +1,19 @@
 "use strict";
-/* Peygamberimizin Hayatı 7 Oyunları · Briefing player, shop, parent report, controller, routing */
-const B={tok:0,i:0,paused:false,held:[],rate:ST.get('p7-rate',1),auto:ST.get('p7-auto',true),started:false,g:null};
+/* Fen Bilimleri 7 Oyunları · Briefing player, shop, parent report, controller, routing */
+const B={tok:0,i:0,paused:false,held:[],rate:ST.get('f7-rate',1),auto:ST.get('f7-auto',true),started:false,g:null};
 function briefing(g,startAt=0,lesson=null,scenes=BRIEF1){
-  hush();B.paused=false;B.held=[];B.started=false;B.g=g;B.tok++;B.startAt=startAt;B.lesson=lesson;B.scenes=scenes;const seen=ST.get('p7-brief',{});
-  const onoff=v=>v?'açık':'kapalı';B.cap=ST.get('p7-cap',true);B.el=0;B.i=startAt;tlDurs();document.body.classList.add('calm');
+  hush();B.paused=false;B.held=[];B.started=false;B.g=g;B.tok++;B.startAt=startAt;B.lesson=lesson;B.scenes=scenes;const seen=ST.get('f7-brief',{});
+  const onoff=v=>v?'açık':'kapalı';B.cap=ST.get('f7-cap',true);B.el=0;B.i=startAt;tlDurs();document.body.classList.add('calm');
   const segs=B.scenes.map((s,i)=>`<span data-s="${i}" style="width:${(B.durs[i]/B.total*100).toFixed(2)}%">${s.name}</span>`).join('');
   app.innerHTML=`<div class="brief">
-   <div class="hud" style="--hue:${g.hue}"><button class="iconbtn" id="back" type="button">${ic('home')} Harita</button><div class="meta"><span class="tema">${lesson?`ÖĞREN · Ders ${lesson.no} · s. ${lesson.p}`:`GÖREV BRİFİNGİ · ${g.id}. Ünite`}</span><h2>${lesson?lesson.t:g.name}</h2></div>
+   <div class="hud" style="--hue:${g.hue}"><button class="iconbtn" id="back" type="button">${ic('home')} Harita</button><div class="meta"><span class="tema">${lesson?`ÖĞREN · Ders ${lesson.no} · ${lesson.book}. Kitap s. ${lesson.p}`:`GÖREV BRİFİNGİ · ${g.id}. Ünite`}</span><h2>${lesson?lesson.t:g.name}</h2></div>
      <button class="iconbtn" id="full" type="button" title="Tam ekran (F)">${ic('full')} Tam ekran</button><button class="btn prime" id="go" type="button">${lesson?(lesson.gen?'DERSİ OYNA':'HARİTAYA DÖN'):'GÖREVE BAŞLA'}</button></div>
    <div class="stagebox"><span class="scn" id="scn">SAHNE 1 / ${B.scenes.length}</span><svg id="st" viewBox="0 0 800 450" role="img" aria-label="Görev brifingi animasyonu"></svg>
      <div id="gate" style="position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,9,32,.6)"><div style="display:grid;gap:14px;justify-items:center;text-align:center;padding:16px">
        <button class="cb main" id="play" type="button" style="font-size:clamp(1.3rem,2.6vw,2.6rem);padding:18px 36px">${ic('play')} ${lesson?'DERSİ BAŞLAT':'BRİFİNGİ BAŞLAT'}</button>${seen[g.id]?'<button class="cb" id="skip0" type="button">Brifingi geç, göreve başla</button>':''}</div></div></div>
    <div class="tl" id="tl" role="slider" aria-label="Zaman çizelgesi" aria-valuemin="0" aria-valuemax="${Math.round(B.total/1000)}" title="Bir bölüme atlamak için tıkla"><div class="tlf" id="tlf"></div><div class="tlb" id="tlb">${segs}</div><div class="tlh" id="tlh"></div></div>
    <div class="tlt"><span id="tlc">0:00</span><span id="tld">${fmtT(B.total)}</span></div>
-   <div class="cap${B.cap?'':' off'}" id="cap" aria-live="polite"><span class="sp">REHBER:</span><span id="capt">Görevden önce kısa bir brifing var. Sesi aç ve başlat!</span></div>
+   <div class="cap${B.cap?'':' off'}" id="cap" aria-live="polite"><span class="sp">ATOM:</span><span id="capt">Görevden önce kısa bir brifing var. Sesi aç ve başlat!</span></div>
    ${VOICE.v?'':`<p class="vnote">${noVoiceMsg()}</p>`}
    <div class="cbar" role="toolbar" aria-label="Brifing kontrolleri">
      <button class="cb" id="first" type="button" title="Baştan başlat">${ic('first')} Baştan</button>
@@ -43,20 +43,20 @@ function briefing(g,startAt=0,lesson=null,scenes=BRIEF1){
   $('nxt').onclick=()=>{if(B.i<B.scenes.length-1)begin(B.i+1);else beginMission(g)};
   $('rep').onclick=()=>begin(B.i);
   $('pp').onclick=()=>{if(!B.started){sfx('start');begin(B.startAt)}else setPaused(!B.paused)};
-  $('spd').onclick=()=>{const R=[.8,1,1.25];B.rate=R[(R.indexOf(B.rate)+1)%R.length]||1;ST.set('p7-rate',B.rate);$('spd').textContent=`Hız: ${num(B.rate)}×`;tlDurs();
+  $('spd').onclick=()=>{const R=[.8,1,1.25];B.rate=R[(R.indexOf(B.rate)+1)%R.length]||1;ST.set('f7-rate',B.rate);$('spd').textContent=`Hız: ${num(B.rate)}×`;tlDurs();
     document.querySelectorAll('#tlb span').forEach((s,i)=>s.style.width=(B.durs[i]/B.total*100).toFixed(2)+'%');$('tld').textContent=fmtT(B.total);tlDraw()};
-  $('capb').onclick=()=>{B.cap=!B.cap;ST.set('p7-cap',B.cap);$('cap').classList.toggle('off',!B.cap);$('capb').className='cb'+(B.cap?' on':'');$('capb').setAttribute('aria-pressed',B.cap);$('capb').textContent='Altyazı: '+onoff(B.cap)};
+  $('capb').onclick=()=>{B.cap=!B.cap;ST.set('f7-cap',B.cap);$('cap').classList.toggle('off',!B.cap);$('capb').className='cb'+(B.cap?' on':'');$('capb').setAttribute('aria-pressed',B.cap);$('capb').textContent='Altyazı: '+onoff(B.cap)};
   $('tl').onclick=e=>{const r=$('tl').getBoundingClientRect(),t=(e.clientX-r.left)/r.width*B.total;let acc=0,k=0;for(;k<B.durs.length-1;k++){if(t<acc+B.durs[k])break;acc+=B.durs[k]}sfx('tick');begin(k)};
   clearInterval(B.tlTimer);B.tlTimer=setInterval(()=>{if(!document.getElementById('tl')){clearInterval(B.tlTimer);return}if(B.started&&!B.paused)B.el+=200;tlDraw()},200);tlDraw();
   const tog=(id,get,set,label,icon)=>{$(id).onclick=()=>{set(!get());const v=get();$(id).className='cb'+(v?' on':'');$(id).setAttribute('aria-pressed',v);$(id).innerHTML=`${ic(icon)} ${label}: ${onoff(v)}`}};
-  tog('vc',()=>VOICE.on,v=>{VOICE.on=v;ST.set('p7-voice',v);if(!v)hush()},'Anlatım','voice');
-  tog('snd',()=>SND.on,v=>{SND.on=v;ST.set('p7-sound',v)},'Efektler','sound');
-  tog('auto',()=>B.auto,v=>{B.auto=v;ST.set('p7-auto',v)},'Otomatik geçiş','auto');
+  tog('vc',()=>VOICE.on,v=>{VOICE.on=v;ST.set('f7-voice',v);if(!v)hush()},'Anlatım','voice');
+  tog('snd',()=>SND.on,v=>{SND.on=v;ST.set('f7-sound',v)},'Efektler','sound');
+  tog('auto',()=>B.auto,v=>{B.auto=v;ST.set('f7-auto',v)},'Otomatik geçiş','auto');
   document.querySelectorAll('#dots button').forEach(b=>b.onclick=()=>begin(+b.dataset.s));
   $('skn').onclick=()=>{const k=Object.keys(SKINS);applySkin(k[(k.indexOf(skin())+1)%k.length]);$('skn').textContent='Görünüm: '+SKINS[skin()]};
-  $('vsel').onclick=()=>{pickVoice();const L=VOICE.list||[];if(!L.length){$('vsel').innerHTML=`${ic('voice')} Anlatıcı: ${vName()}`;if(!VOICE.v)voiceHelp();else{hush();say('Merhaba kaşif, ben Rehber. Sesim böyle.',true)}return}
-    const i=L.indexOf(VOICE.v);VOICE.v=L[(i+1)%L.length];ST.set('p7-voicename',VOICE.v.name);ST.set('p7-voiceok',L.some(v=>/ahmet/i.test(v.name)));$('vsel').innerHTML=`${ic('voice')} Anlatıcı: ${vName()}`;
-    if(B.started&&!B.paused)setPaused(true);hush();say('Merhaba kaşif, ben Rehber. Sesim böyle.',true)};
+  $('vsel').onclick=()=>{pickVoice();const L=VOICE.list||[];if(!L.length){$('vsel').innerHTML=`${ic('voice')} Anlatıcı: ${vName()}`;if(!VOICE.v)voiceHelp();else{hush();say('Merhaba kaşif, ben Rakam. Sesim böyle.',true)}return}
+    const i=L.indexOf(VOICE.v);VOICE.v=L[(i+1)%L.length];ST.set('f7-voicename',VOICE.v.name);ST.set('f7-voiceok',L.some(v=>/ahmet/i.test(v.name)));$('vsel').innerHTML=`${ic('voice')} Anlatıcı: ${vName()}`;
+    if(B.started&&!B.paused)setPaused(true);hush();say('Merhaba kaşif, ben Rakam. Sesim böyle.',true)};
   ppLabel();
 }
 /* timeline: each scene's length is estimated from its narration; time only runs while playing */
@@ -73,7 +73,7 @@ function setPaused(p){
   else{B.held.forEach(a=>{try{a.play()}catch(e){}});B.held=[];try{speechSynthesis.resume()}catch(e){}}
   document.querySelector('.stagebox')?.classList.toggle('paused',p);ppLabel();
 }
-function beginMission(g){B.tok++;B.paused=false;hush();const s=ST.get('p7-brief',{});s[g.id]=1;ST.set('p7-brief',s);
+function beginMission(g){B.tok++;B.paused=false;hush();const s=ST.get('f7-brief',{});s[g.id]=1;ST.set('f7-brief',s);
   if(B.lesson){const l=B.lesson;B.lesson=null;location.hash=l.gen?'#ders-'+l.id:'';return}start(g)}
 async function playScene(i){
   B.i=i;const tok=++B.tok;hush();B.paused=false;B.held=[];B.el=0;B.sceneDone=false;document.querySelector('.stagebox')?.classList.remove('paused');ppLabel();const sc=B.scenes[i];
@@ -112,15 +112,15 @@ function shopPage(){
    <div class="pnl"><h2>Robot rengi</h2><div class="shopgrid">${Object.entries(HEROC).map(([id,[n,,p]])=>item('hero',id,n,p,heroBox({...s,hero:id,hat:'h-none'}))).join('')}</div></div>
    <div class="pnl"><h2>Şapka</h2><div class="shopgrid">${Object.entries(HATS).map(([id,[n,p]])=>item('hat',id,n,p,heroBox({...s,hat:id}))).join('')}</div></div>
    <div class="pnl"><h2>Annenin terliği</h2><div class="shopgrid">${Object.entries(SLIPS).map(([id,[n,f,p]])=>item('slip',id,n,p,`<svg viewBox="-45 -45 90 90">${SHOPDEFS}${slipperSVG(f)}</svg>`)).join('')}</div></div></div>`;
-  app.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{const [cat,id,p]=b.dataset.buy.split(':');const price=+p;if(wallet()<price)return;const s2=shop();ST.set('p7-coins',wallet()-price);s2.owned.push(id);s2[cat]=id;ST.set('p7-shop',s2);sfx('combo');shopPage()});
-  app.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{const [cat,id]=b.dataset.eq.split(':');const s2=shop();s2[cat]=id;ST.set('p7-shop',s2);sfx('tick');shopPage()});
-  document.title='Mağaza · Peygamberimizin Hayatı 7';
+  app.querySelectorAll('[data-buy]').forEach(b=>b.onclick=()=>{const [cat,id,p]=b.dataset.buy.split(':');const price=+p;if(wallet()<price)return;const s2=shop();ST.set('f7-coins',wallet()-price);s2.owned.push(id);s2[cat]=id;ST.set('f7-shop',s2);sfx('combo');shopPage()});
+  app.querySelectorAll('[data-eq]').forEach(b=>b.onclick=()=>{const [cat,id]=b.dataset.eq.split(':');const s2=shop();s2[cat]=id;ST.set('f7-shop',s2);sfx('tick');shopPage()});
+  document.title='Mağaza · Fen Bilimleri 7';
 }
 
 /* ================= parent report ================= */
 const pctCol=p=>p>=80?'var(--green)':p>=60?'var(--gold)':'var(--red)';
 function reportPage(){
-  const L=ST.get('p7-log',[]),goal=ST.get('p7-goal',{target:500,reward:'Aile ödülü',base:0});
+  const L=ST.get('f7-log',[]),goal=ST.get('f7-goal',{target:500,reward:'Aile ödülü',base:0});
   const n=L.length,ok=L.filter(e=>e.ok).length,acc=n?Math.round(ok/n*100):0;
   const bar=(label,a,t,weak)=>`<div class="bar"><span${weak?' class="weak"':''}>${label}${weak?' · zayıf':''}</span><span class="tr"><i style="width:${t?Math.round(a/t*100):0}%;background:${pctCol(t?a/t*100:0)}"></i></span><span class="v">${t?'%'+Math.round(a/t*100):'—'} · ${a}/${t}</span></div>`;
   const byTh=G.map(g=>{const e=L.filter(x=>x.th===g.id);return bar(`${g.id}. ${g.name}`,e.filter(x=>x.ok).length,e.length,e.length>=5&&e.filter(x=>x.ok).length/e.length<.7)}).join('');
@@ -135,7 +135,7 @@ function reportPage(){
   app.innerHTML=`<div class="page"><div class="row" style="justify-content:space-between"><a class="btn" href="#">← Harita</a><span class="coins"><i class="coin"></i>${wallet()} altın</span></div>
    <h1>Ebeveyn Raporu</h1>
    ${n?'':'<div class="pnl"><p class="empty">Henüz cevap yok. Çocuğunuz bir görev oynadığında burada güçlü ve zayıf konular, tekrarlayan hatalar ve önerilen çalışmalar görünecek.</p></div>'}
-   <div class="pnl"><div class="stat"><div><b>${n}</b><span>cevaplanan soru</span></div><div><b>%${acc}</b><span>doğruluk</span></div><div><b>${ST.get('p7-earned',0)}</b><span>toplam kazanılan altın</span></div><div><b>${misList.reduce((a,x)=>a+x[1],0)}</b><span>yakalanan canavar</span></div></div></div>
+   <div class="pnl"><div class="stat"><div><b>${n}</b><span>cevaplanan soru</span></div><div><b>%${acc}</b><span>doğruluk</span></div><div><b>${ST.get('f7-earned',0)}</b><span>toplam kazanılan altın</span></div><div><b>${misList.reduce((a,x)=>a+x[1],0)}</b><span>yakalanan canavar</span></div></div></div>
    <div class="pnl"><h2>Öncelikli öneriler</h2>${weakSk.length||misList.length?`<ul style="margin:0;padding-left:1.2em;display:grid;gap:6px">${weakSk.map(s=>`<li><b>${SK1[s.k]}</b> konusu zayıf (%${Math.round(s.a/s.t*100)}). <a href="#pratik-${s.k}">Bu konuda 10 soruluk pratik başlat</a>.</li>`).join('')}${misList.slice(0,3).map(([key,c])=>{const m=M[key.split('@')[0]]||M.other;return `<li><b>${m.m}</b> ${c} kez çıktı: ${m.s}</li>`}).join('')}</ul>`:'<p class="empty">Yeterli veri olunca burada en önemli 3–5 öneri görünecek (bir konuda en az 3 cevap gerekir).</p>'}</div>
    ${(()=>{const S0=srsState(),d=dailyInfo(),rows=LESSONS.filter(l=>S0[l.id]).sort((a,b)=>(S0[b.id].weak-S0[a.id].weak)||(S0[b.id].due-S0[a.id].due)||(S0[a.id].next-S0[b.id].next)).map(l=>{const s=S0[l.id],t=s.weak?['zayıf','var(--red)']:s.recent.length<3?['yeni · az cevap','var(--ink-soft)']:s.due?['tekrar zamanı','var(--gold)']:['sağlam','var(--green)'];
      return `<div class="bar"><span>${l.no} ${l.t}</span><span><span class="chip" style="border-color:${t[1]}">${t[0]} · %${Math.round(s.acc*100)} · ${s.recent.length} cevap</span></span><span class="v">${s.due||s.weak?'bugün':Math.ceil(s.next)+' gün sonra'}</span></div>`}).join('');
@@ -153,24 +153,24 @@ function reportPage(){
      <div class="row"><button class="btn" id="bkl" type="button">Yedeği yükle</button><span class="hint" id="bkm"></span></div></div>
    <div class="pnl"><h2>Verileri sil</h2><p class="hint">Rapor, altınlar ve mağaza bu cihazın tarayıcısında saklanır.</p><div class="row"><button class="btn" id="clr" type="button">Rapor verilerini sil</button><span id="clrc"></span></div></div></div>`;
   const $=id=>document.getElementById(id);
-  $('gs').onclick=()=>{const g=ST.get('p7-goal',{target:500,reward:'Aile ödülü',base:0});g.target=Math.max(50,+$('gt').value||500);g.reward=$('gr').value.trim()||'Aile ödülü';ST.set('p7-goal',g);reportPage();document.getElementById('gmsg').textContent='Kaydedildi.'};
-  $('gd').onclick=()=>{const g=ST.get('p7-goal',{target:500,reward:'Aile ödülü',base:0});g.base=ST.get('p7-earned',0);ST.set('p7-goal',g);reportPage();document.getElementById('gmsg').textContent='Sayaç sıfırlandı.'};
-  $('clr').onclick=()=>{$('clrc').innerHTML='<span class="hint">Emin misiniz? Cevap kayıtları silinir (altınlar kalır).</span> <button class="btn" id="clr2" type="button">Evet, sil</button>';$('clr2').onclick=()=>{ST.set('p7-log',[]);reportPage()}};
+  $('gs').onclick=()=>{const g=ST.get('f7-goal',{target:500,reward:'Aile ödülü',base:0});g.target=Math.max(50,+$('gt').value||500);g.reward=$('gr').value.trim()||'Aile ödülü';ST.set('f7-goal',g);reportPage();document.getElementById('gmsg').textContent='Kaydedildi.'};
+  $('gd').onclick=()=>{const g=ST.get('f7-goal',{target:500,reward:'Aile ödülü',base:0});g.base=ST.get('f7-earned',0);ST.set('f7-goal',g);reportPage();document.getElementById('gmsg').textContent='Sayaç sıfırlandı.'};
+  $('clr').onclick=()=>{$('clrc').innerHTML='<span class="hint">Emin misiniz? Cevap kayıtları silinir (altınlar kalır).</span> <button class="btn" id="clr2" type="button">Evet, sil</button>';$('clr2').onclick=()=>{ST.set('f7-log',[]);reportPage()}};
   $('bk').onclick=()=>{const c=backupCode();$('bkt').value=c;$('bkt').select();try{navigator.clipboard.writeText(c).then(()=>$('bkm').textContent='Kopyalandı. Şimdi diğer cihazda yapıştırın.',()=>$('bkm').textContent='Kod aşağıda; seçip kopyalayın.')}catch(e){$('bkm').textContent='Kod aşağıda; seçip kopyalayın.'}};
   $('bkf').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([backupCode()],{type:'text/plain'}));a.download='fen7-yedek-'+new Date().toISOString().slice(0,10)+'.txt';document.body.appendChild(a);a.click();a.remove();$('bkm').textContent='Dosya indirildi. Diğer cihazda dosyayı açıp içindeki kodu yapıştırın.'};
   $('bkl').onclick=()=>{const r=restoreBackup($('bkt').value);if(!r.ok){$('bkm').textContent=r.msg;return}
     $('bkm').innerHTML=`<span>Bu cihazdaki ilerleme, yedektekiyle değiştirilecek (${r.coins} altın, ${r.answers} cevap).</span> <button class="btn gold" id="bky" type="button">Evet, yükle</button>`;
     $('bky').onclick=()=>{r.apply();location.hash='';location.reload()}};
-  document.title='Ebeveyn Raporu · Peygamberimizin Hayatı 7';
+  document.title='Ebeveyn Raporu · Fen Bilimleri 7';
 }
 /* progress backup: every m7-* key as one copyable code */
-function backupCode(){const d={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('p7-')&&!/^p7-voice(name|ok)$/.test(k))d[k]=localStorage.getItem(k)}
-  return 'P7Y1:'+btoa(unescape(encodeURIComponent(JSON.stringify({v:1,at:Date.now(),d}))))}
-function restoreBackup(txt){try{const t=(txt||'').trim().replace(/\s+/g,'');if(!t.startsWith('P7Y1:'))return {ok:false,msg:'Bu bir Peygamberimizin Hayatı 7 yedek kodu değil.'};
+function backupCode(){const d={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('f7-')&&!/^f7-voice(name|ok)$/.test(k))d[k]=localStorage.getItem(k)}
+  return 'F7Y1:'+btoa(unescape(encodeURIComponent(JSON.stringify({v:1,at:Date.now(),d}))))}
+function restoreBackup(txt){try{const t=(txt||'').trim().replace(/\s+/g,'');if(!t.startsWith('F7Y1:'))return {ok:false,msg:'Bu bir Fen Bilimleri 7 yedek kodu değil.'};
     const o=JSON.parse(decodeURIComponent(escape(atob(t.slice(5)))));if(!o||typeof o.d!=='object')return {ok:false,msg:'Yedek kodu bozuk.'};
-    const keys=Object.keys(o.d).filter(k=>k.startsWith('p7-'));if(!keys.length)return {ok:false,msg:'Yedek boş.'};
+    const keys=Object.keys(o.d).filter(k=>k.startsWith('f7-'));if(!keys.length)return {ok:false,msg:'Yedek boş.'};
     const g=k=>{try{return JSON.parse(o.d[k])}catch(e){return null}};
-    return {ok:true,coins:g('p7-coins')||0,answers:(g('p7-log')||[]).length,apply(){const old=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('p7-'))old.push(k)}
+    return {ok:true,coins:g('f7-coins')||0,answers:(g('f7-log')||[]).length,apply(){const old=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('f7-'))old.push(k)}
       old.forEach(k=>localStorage.removeItem(k));keys.forEach(k=>localStorage.setItem(k,o.d[k]))}}}
   catch(e){return {ok:false,msg:'Yedek kodu okunamadı; tamamını kopyaladığınızdan emin olun.'}}}
 
@@ -247,14 +247,14 @@ requestAnimationFrame(padLoop);
 function route(){
   B.tok++;hush();S=null;window.scrollTo(0,0);document.body.classList.remove('calm');const h=location.hash;let m;
   document.body.classList.toggle('at-home',!/^#(tema|ders|ogren|pratik|test|gorev|magaza|rapor)/.test(h));
-  if((m=h.match(/^#tema-([1-9])$/))){const g=G.find(x=>x.id===+m[1]);setLast(h,`${g.id}. Ünite görevi: ${g.name}`);document.title=g.name+' · Peygamberimizin Hayatı 7';if(g.brief)briefing(g);else start(g);return}
-  if((m=h.match(/^#ders-([1-9]-\d)$/))){const l=LESSONS.find(x=>x.id===m[1]);if(l&&l.gen){setLast(h,`${l.no} ${l.t}`);document.title=l.t+' · Peygamberimizin Hayatı 7';start(GU(l.th),{lesson:l});return}}
+  if((m=h.match(/^#tema-([1-9])$/))){const g=G.find(x=>x.id===+m[1]);setLast(h,`${g.id}. Ünite görevi: ${g.name}`);document.title=g.name+' · Fen Bilimleri 7';if(g.brief)briefing(g);else start(g);return}
+  if((m=h.match(/^#ders-([1-9]-\d)$/))){const l=LESSONS.find(x=>x.id===m[1]);if(l&&l.gen){setLast(h,`${l.no} ${l.t}`);document.title=l.t+' · Fen Bilimleri 7';start(GU(l.th),{lesson:l});return}}
   if((m=h.match(/^#ogren-([1-9]-\d)(?:-(\d+))?$/))){const l=LESSONS.find(x=>x.id===m[1]);if(l&&(l.script||l.learn!=null)){setLast('#ogren-'+l.id,`Öğren: ${l.no} ${l.t}`);document.title='Öğren · '+l.t;
     {const sc=scenesFor(l);briefing(GU(l.th),Math.min(+(m[2]||0),sc.length-1),l,sc)}
     if(m[2]!=null)document.getElementById('play')?.click();return}}
-  if((m=h.match(/^#pratik-([a-z-]+)$/))&&SK1[m[1]]){const g=G[0];document.title='Pratik · Peygamberimizin Hayatı 7';start(g,{skill:m[1]});return}
+  if((m=h.match(/^#pratik-([a-z-]+)$/))&&SK1[m[1]]){const g=G[0];document.title='Pratik · Fen Bilimleri 7';start(g,{skill:m[1]});return}
   if((m=h.match(/^#test-([1-9])$/))){const g=G.find(x=>x.id===+m[1]);setLast(h,`${g.id}. Ünite seviye testi`);document.title='Seviye testi · '+g.tema;start(g,{test:true});return}
-  if(h==='#gorev'){document.title='Bugünün Görevi · Peygamberimizin Hayatı 7';startDaily();return}
+  if(h==='#gorev'){document.title='Bugünün Görevi · Fen Bilimleri 7';startDaily();return}
   if(h==='#magaza')return shopPage();
   if(h==='#rapor')return reportPage();
   hub();

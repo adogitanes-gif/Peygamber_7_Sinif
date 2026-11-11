@@ -1,5 +1,5 @@
 "use strict";
-/* Peygamberimizin Hayatı 7 Oyunları · Turns each lesson's question bank (js/units/u*.js) into game questions */
+/* Fen Bilimleri 7 Oyunları · Turns each lesson's question bank (js/units/u*.js) into game questions */
 /* A lesson's questions are dealt from a shuffled deck, so a round of 10 repeats nothing until the deck is used up. */
 const DECKS={};
 function deal(l){let d=DECKS[l.id];if(!d||!d.length)d=DECKS[l.id]=shuffle(l.q.map((_,i)=>i));return l.q[d.pop()]}

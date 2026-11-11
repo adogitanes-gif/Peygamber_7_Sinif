@@ -1,15 +1,15 @@
 {
- "name": "Peygamberimizin Hayatı 7 Oyunları",
- "short_name": "Peygamberimiz 7",
+ "name": "Fen Bilimleri 7 Oyunları",
+ "short_name": "Fen 7",
  "lang": "tr",
  "dir": "ltr",
- "description": "7. sınıf Peygamberimizin Hayatı dersleri ve oyunları",
+ "description": "7. sınıf Fen Bilimleri dersleri ve oyunları",
  "start_url": "./",
  "scope": "./",
  "display": "standalone",
  "orientation": "any",
  "background_color": "#0a0920",
- "theme_color": "#1a163c",
+ "theme_color": "#0a3430",
  "icons": [
   {
    "src": "icons/icon-192.png",
